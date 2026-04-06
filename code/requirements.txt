@@ -1,0 +1,14 @@
+torch
+torchvision
+numpy
+scipy
+networkx
+scikit-learn
+umap-learn
+matplotlib
+seaborn
+tensorboard
+tqdm
+rich
+pyyaml
+pytest

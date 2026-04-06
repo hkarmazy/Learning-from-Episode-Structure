@@ -1,0 +1,58 @@
+# Attractor Landscape Training — ICDL 2026 (v5 full experiment)
+# All parameters in one place. α=2.5 is fixed from published data, not tuned.
+
+data:
+  n_classes:    32
+  episode_len:  180
+  zipf_alpha:   1.8        # steeper skew; rank1/rank32 ratio ~6.9x
+  sw_beta:      0.15       # FIXED — calibrated to published SW statistics
+  focal_boost:  0.1        # probability of returning to focal toy per timestep
+  n_train_episodes:  200
+  n_val_episodes:    200
+  n_test_episodes:   500
+  # Visual mode (CIFAR-100)
+  cifar100_class_indices: [2,28,9,13,58,5,22,84,61,1,3,65,50,6,27,93,99,53,51,59,0,86,31,79,43,88,14,8,69,90,70,34]
+  feature_cache_dir: "data/cifar_cache"
+  n_augment: 6              # augmented feature versions per train image
+
+model:
+  embed_dim:  64
+  hidden_dim: 256
+  n_layers:   1
+  feature_dim: 512          # ResNet-18 output dimension
+  projection_hidden: 128    # hidden dim in feature projection MLP
+  context_window: 2         # number of previous tokens concatenated with GRU state
+
+training:
+  epochs:     3000          # high ceiling; early stopping terminates before this
+  batch_size: 64
+  lr:         0.001
+  seeds:      [0, 1, 2, 3, 4]
+
+early_stopping:
+  metric:    rare_acc       # metric to monitor
+  patience:  100            # stop after 100 epochs with no improvement
+  min_delta: 0.002          # minimum improvement to count (0.2pp)
+
+checkpoints:
+  save_epochs: [50, 100, 200, 300, 400]
+
+attractor_loss:
+  lambda1:        0.4   # basin depth weight
+  lambda2:        0.3   # neighbor attraction weight
+  alpha_loss:     1.8   # basin depth power
+  beta_surprise:  1.5   # surprise exponent
+  ema_decay:      0.95
+  sw_prior_temp:  1.0   # softmax temperature for SW transition prior
+  velocity_gating: false  # disabled for v5 early-stop experiment
+
+evaluation:
+  log_every_n_epochs:  1
+  rare_rank_threshold:      9     # median split at alpha=1.8: common=0-8, rare=9-31
+  n_test_episodes_uniform:  500
+  n_test_episodes_zipfsw:   500
+  test_zipf_alpha:          1.8
+  test_sw_beta:             0.15
+  track_per_class_onset:    true
+  onset_threshold:          0.40  # first epoch where class acc > 40%
+  umap_n_neighbors:    15
